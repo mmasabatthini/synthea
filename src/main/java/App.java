@@ -104,7 +104,6 @@ public class App {
           } else if (currArg.equalsIgnoreCase("-p")) {
             String value = argsQ.poll();
             options.population = Integer.parseInt(value);
-            Config.set("generate.default_population", value);
           } else if (currArg.equalsIgnoreCase("-o")) {
             String value = argsQ.poll();
             options.overflow = Boolean.parseBoolean(value);
@@ -133,7 +132,10 @@ public class App {
             String value = argsQ.poll();
             File configFile = new File(value);
             Config.load(configFile);
-            resetOptionsFromConfig(options);
+            // Any options that are automatically set by reading the configuration
+            // file during options initialization need to be reset here.
+            options.population = Config.getAsInteger("generate.default_population", 1);
+            options.threadPoolSize = Config.getAsInteger("generate.thread_pool_size", -1);
           } else if (currArg.equalsIgnoreCase("-d")) {
             String value = argsQ.poll();
             File localModuleDir = new File(value);
@@ -250,7 +252,6 @@ public class App {
             }
 
             Config.set(configSetting, value);
-            resetOptionsFromConfig(options);
           } else if (options.state == null) {
             options.state = currArg;
           } else {
@@ -269,13 +270,6 @@ public class App {
       Generator generator = new Generator(options, exportOptions);
       generator.run();
     }
-  }
-  
-  private static void resetOptionsFromConfig(Generator.GeneratorOptions options) {
-      // Any options that are automatically set by reading the configuration
-      // file during options initialization need to be reset here.
-      options.population = Config.getAsInteger("generate.default_population", 1);
-      options.threadPoolSize = Config.getAsInteger("generate.thread_pool_size", -1);
   }
 
   private static boolean validateConfig(Generator.GeneratorOptions options,
